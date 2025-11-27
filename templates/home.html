@@ -1,0 +1,275 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle ANHQV</title>
+    <link rel="stylesheet" href="{% static 'styles/home.css' %}">
+</head>
+<body>
+
+<h1>Wordle ANHQV</h1>
+
+<div class="game-board" id="gameBoard"></div>
+
+<!-- AUTOCOMPLETADO -->
+<div class="autocomplete-container">
+    <input type="text" id="characterInput" placeholder="Escribe un personaje">
+    <ul id="characterSuggestions"></ul>
+</div>
+
+<!-- TABLA DE RESULTADOS -->
+<table id="resultsTable" class="results-table" style="display:none;">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Edad</th>
+            <th>Ocupación</th>
+            <th>Género</th>
+            <th>Lugar</th>
+            <th>Aparición</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<script>
+// =================== VARIABLES PRINCIPALES ===================
+const characterInput = document.getElementById("characterInput");
+const suggestions = document.getElementById("characterSuggestions");
+const resultsTable = document.getElementById("resultsTable");
+const resultsBody = resultsTable.querySelector("tbody");
+
+let usedNames = [];
+let debounce;
+let attempts = 0;
+const MAX_ATTEMPTS = 6;
+
+let correctCharacter = {}; // ← personaje correcto del día
+
+// ===================================
+// 1) OBTENER PERSONAJE CORRECTO AL CARGAR LA PÁGINA
+// ===================================
+async function fetchCorrectCharacter() {
+    const res = await fetch("/getCorrectCharacter/");
+    correctCharacter = await res.json();
+    console.log("Personaje correcto del día:", correctCharacter);
+}
+
+fetchCorrectCharacter(); // 👈 SE EJECUTA AUTOMÁTICAMENTE
+
+// ===================================
+// 2) AUTOCOMPLETADO
+// ===================================
+function highlightMatch(text, term) {
+    return text.replace(new RegExp(`(${term})`, "ig"), `<span class="highlight">$1</span>`);
+}
+
+characterInput.addEventListener("input", () => {
+    const term = characterInput.value.trim();
+    if (!term || attempts >= MAX_ATTEMPTS) {
+        suggestions.style.display = "none";
+        return;
+    }
+
+    clearTimeout(debounce);
+    debounce = setTimeout(async () => {
+        const res = await fetch(`/getnames/?term=${term}`);
+        const names = await res.json();
+
+        suggestions.innerHTML = "";
+        if (names.length === 0) {
+            suggestions.style.display = "none";
+            return;
+        }
+
+        // quitar los ya usados
+        const filtered = names.filter(n => !usedNames.includes(n));
+        if (filtered.length === 0) {
+            suggestions.style.display = "none";
+            return;
+        }
+
+        suggestions.style.display = "block";
+
+        filtered.forEach(name => {
+            const li = document.createElement("li");
+            li.innerHTML = highlightMatch(name, term);
+
+            li.onclick = async () => {
+                characterInput.value = "";
+                suggestions.style.display = "none";
+
+                const info = await fetch(`/getinfo/?name=${encodeURIComponent(name)}`);
+                const data = await info.json();
+
+                addResultRow(data);
+            };
+
+            suggestions.appendChild(li);
+        });
+    }, 150);
+});
+
+document.addEventListener("click", e => {
+    if (!e.target.closest(".autocomplete-container"))
+        suggestions.style.display = "none";
+});
+
+// ===================================
+// 3) AÑADIR FILA Y COLOREARLA
+// ===================================
+function addResultRow(data) {
+
+    if (attempts >= MAX_ATTEMPTS) return;
+    if (usedNames.includes(data.Name)) return;
+
+    attempts++;
+    usedNames.push(data.Name);
+
+    resultsTable.style.display = "table";
+
+    const row = document.createElement("tr");
+
+    const attrs = [
+        "Name",
+        "AgeRange",
+        "Occupation",
+        "Genre",
+        "PlaceOfLiving",
+        "FirstAppearance"
+    ];
+
+    let allCorrect = true;
+
+    row.innerHTML = attrs.map(attr => {
+        const value = data[attr];
+        const isCorrect = (value === correctCharacter[attr]);
+
+        if (!isCorrect) allCorrect = false;
+
+        const color = isCorrect ? "correct-cell" : "wrong-cell";
+        return `<td class="${color}">${value}</td>`;
+    }).join("");
+
+    resultsBody.prepend(row);
+
+    // ----------------------------------------
+    // ✅ SI ACERTASTE TODO → FIN DEL JUEGO
+    // ----------------------------------------
+    if (allCorrect) {
+        characterInput.disabled = true;
+        characterInput.placeholder = "Soy Concha, entro";
+
+        // Quitar mensajes o gifs anteriores si los hubiera
+        const oldMsg = document.getElementById("winMessage");
+        if (oldMsg) oldMsg.remove();
+
+        const container = document.createElement("div");
+        container.id = "winMessage";
+        container.style.marginTop = "20px";
+        container.style.textAlign = "center";
+
+        const msg = document.createElement("p");
+
+        if (attempts < 2) {
+            msg.textContent = "Que puntería";
+    
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="9108612" data-share-method="host" data-aspect-ratio="0.877698" data-width="60%"></div>
+            `;
+        } else if (attempts < 3) {
+            msg.textContent = "Que rica la aceituna El Faro con su sabor sofisticado OLE";
+
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="18141580" data-share-method="host" data-aspect-ratio="1.33333" data-width="100%"></div>
+            `;
+        } else if (attempts < 4) {
+            msg.textContent = "MOVIDA MOVIDA";
+
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="18520445" data-share-method="host" data-aspect-ratio="1.33333" data-width="100%"></div>
+            `;
+        } else if (attempts < 5) {
+            msg.textContent = "Graba las caras Juan, las caras";
+
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="10319128" data-share-method="host" data-aspect-ratio="1.33333" data-width="100%"></div>
+            `;
+        } else if (attempts < 6) {
+            msg.textContent = "Viejas de mierda";
+
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="19686162" data-share-method="host" data-aspect-ratio="1.33333" data-width="100%"></div>
+            `;
+        } else if (attempts < 7) {
+            msg.textContent = "Tienes todos los chakras disparados";
+
+            container.innerHTML = `
+                <div class="tenor-gif-embed" data-postid="18188578" data-share-method="host" data-aspect-ratio="1.77778" data-width="100%"></div>
+            `;
+        }
+
+        
+        msg.style.fontSize = "22px";
+        msg.style.fontWeight = "bold";
+        msg.style.color = "green";
+        container.appendChild(msg);
+
+        if (!document.getElementById("tenorScript")) {
+            const script = document.createElement("script");
+            script.id = "tenorScript";
+            script.type = "text/javascript";
+            script.src = "https://tenor.com/embed.js";
+            script.async = true;
+            document.body.appendChild(script);
+        }
+
+        document.body.appendChild(container);
+        return;
+    }
+
+    // ----------------------------------------
+    // ❌ Si fallas los 6 intentos → Fin también
+    // ----------------------------------------
+    if (attempts === MAX_ATTEMPTS) {
+        characterInput.disabled = true;
+        characterInput.placeholder = "Amos no me jodas";
+
+        const container = document.createElement("div");
+        container.id = "winMessage";
+        container.style.marginTop = "20px";
+        container.style.textAlign = "center";
+
+        const msg = document.createElement("p");
+        msg.textContent = "Fatal, a la academia Cuesta a estudiar";
+        msg.style.fontSize = "22px";
+        msg.style.fontWeight = "bold";
+        msg.style.color = "red";
+        msg.style.marginBottom = "10px";
+
+        container.appendChild(msg);
+
+        container.innerHTML += `
+            <div class="tenor-gif-embed" data-postid="8517212" data-share-method="host" 
+                data-aspect-ratio="1.33929" style="max-width:300px; margin:auto;">
+            </div>
+        `;
+
+        if (!document.getElementById("tenorScript")) {
+            const script = document.createElement("script");
+            script.id = "tenorScript";
+            script.src = "https://tenor.com/embed.js";
+            script.async = true;
+            document.body.appendChild(script);
+        }
+
+        document.body.appendChild(container);
+    }
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+DELETE FROM CHARACTER;
+
+INSERT INTO CHARACTER (name, AgeRange, Occupation, Genre, PlaceOfLiving, FirstAppearance) VALUES
+('Juan Cuesta', '50-60', 'Profesor/a', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Paloma Hurtado', '50-60', 'Amo/a de casa', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Isabel Ruiz hierbas', '40-50', 'Amo/a de casa', 'Femenino', 'C. Desengaño, 21', 'T2'),
+('José Miguel Cuesta', '10-20', 'Estudiante', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Marisa Benito', '60-70', 'Jubilado/a', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Vicenta Benito', '60-70', 'Jubilado/a', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Emilio Delgado', '30-40', 'Portero/a', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Belén López', '30-40', 'Pluriempleado/a', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Alicia Sanz', '20-30', 'Actor/Actriz', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Roberto Alonso', '30-40', 'Dibujante', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Lucía Álvarez', '20-30', 'Pluriempleado/a', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Andrés Guerra', '50-60', 'Empresario/a', 'Masculino', 'C. Desengaño, 21', 'T2'),
+('Mauricio Hidalgo', '40-50', 'Periodista', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Concha', '60-70', 'Jubilado/a', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Natalia Cuesta', '20-30', 'Estudiante', 'Femenino', 'C. Desengaño, 21', 'T1'),
+('Fernando Navarro', '30-40', 'Abogado/a', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Higinio Heredia', '40-50', 'Constructor/a', 'Masculino', 'C. Desengaño, 21', 'T3'),
+('Mª Jesús Vázquez Torrijas', '40-50', 'Amo/a de casa', 'Femenino', 'C. Desengaño, 21', 'T3'),
+('Mariano Delgado', '60-70', 'Jubilado/a', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Valentin', '0-10', 'Amo/a de casa', 'Masculino', 'C. Desengaño, 21', 'T1'),
+('Nieves Cuesta', '50-60', 'Amo/a de casa', 'Femenino', 'C. Desengaño, 21', 'T4');
